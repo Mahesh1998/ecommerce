@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}My Ecommerce Site{% endblock %}</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Custom CSS -->
+  <style>
+    /* Add your custom styles here */
+  </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container">
+    <a class="navbar-brand" href="#">My Ecommerce</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item active">
+          <a class="nav-link" href="#">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#" id="productsLink">Products</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#" id="usersLink">Users</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#" id="ordersLink">Orders</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Page Content -->
+<div class="container mt-5">
+  {% block content %}{% endblock %}
+</div>
+
+<!-- Bootstrap JS and dependencies -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+  // API requests to navigate to product, users, and orders pages
+  $(document).ready(function() {
+    $('#productsLink').click(function(e) {
+      e.preventDefault();
+      // Make API request to navigate to products page
+      $.ajax({
+        url: '/myapp/products',
+        method: 'GET',
+        success: function(response) {
+          window.location.href = '/myapp/products';
+        },
+        error: function(xhr, status, error) {
+          console.error(xhr.responseText);
+        }
+      });
+    });
+
+    $('#usersLink').click(function(e) {
+      e.preventDefault();
+      // Make API request to navigate to users page
+      $.ajax({
+        url: '/myapp/users/',
+        method: 'GET',
+        success: function(response) {
+          window.location.href = '/users';
+        },
+        error: function(xhr, status, error) {
+          console.error(xhr.responseText);
+        }
+      });
+    });
+
+    $('#ordersLink').click(function(e) {
+      e.preventDefault();
+      // Make API request to navigate to orders page
+      $.ajax({
+        url: '/v/orders',
+        method: 'GET',
+        success: function(response) {
+          window.location.href = '/orders';
+        },
+        error: function(xhr, status, error) {
+          console.error(xhr.responseText);
+        }
+      });
+    });
+  });
+</script>
+</body>
+</html>

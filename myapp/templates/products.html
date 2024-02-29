@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+
+{% block title %}Product List - My Ecommerce Site{% endblock %}
+
+<!-- Bootstrap CSS -->
+<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+
+{% block content %}
+<div class="container mt-5">
+  <h1>Product List</h1>
+  <a href="#" id="addProductBtn" class="btn btn-primary mb-3">Add Product</a>
+  <table id="productTable" class="table table-striped">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+        <th>Manufacturer</th>
+        <th>Inventory Count</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for product in products %}
+      <tr>
+        <td>{{ product.name }}</td>
+        <td>{{ product.description }}</td>
+        <td>{{ product.manufacturer_name }}</td>
+        <td>{{ product.inventory_count }}</td>
+        <td>
+          <button class="btn btn-sm btn-primary editBtn" data-id="{{ product.product_id }}">Edit</button>
+          <button class="btn btn-sm btn-danger deleteBtn" data-id="{{ product.product_id }}">Delete</button>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Modal for Product Editing -->
+<div class="modal fade" id="editProductModal" tabindex="-1" role="dialog" aria-labelledby="editProductModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editProductModalLabel">Edit Product</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="editProductForm">
+          <input type="hidden" id="editFormProductId" name="editFormProductId">
+          <div class="form-group">
+            <label for="editProductName">Name</label>
+            <input type="text" class="form-control" id="editProductName" required>
+          </div>
+          <div class="form-group">
+            <label for="editProductDescription">Description</label>
+            <textarea class="form-control" id="editProductDescription" rows="3" required></textarea>
+          </div>
+          <div class="form-group">
+            <label for="editProductManufacturer">Manufacturer</label>
+            <input type="text" class="form-control" id="editProductManufacturer" required>
+          </div>
+          <div class="form-group">
+            <label for="editProductInventory">Inventory Count</label>
+            <input type="number" class="form-control" id="editProductInventory" required>
+          </div>
+          <button type="submit" class="btn btn-primary">Save changes</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal for Adding Product -->
+<div class="modal fade" id="addProductModal" tabindex="-1" role="dialog" aria-labelledby="addProductModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addProductModalLabel">Add Product</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="addProductForm">
+          <div class="form-group">
+            <label for="addProductName">Name</label>
+            <input type="text" class="form-control" id="addProductName" required>
+          </div>
+          <div class="form-group">
+            <label for="addProductDescription">Description</label>
+            <textarea class="form-control" id="addProductDescription" rows="3" required></textarea>
+          </div>
+          <div class="form-group">
+            <label for="addProductManufacturer">Manufacturer</label>
+            <input type="text" class="form-control" id="addProductManufacturer" required>
+          </div>
+          <div class="form-group">
+            <label for="addProductInventory">Inventory Count</label>
+            <input type="number" class="form-control" id="addProductInventory" required>
+          </div>
+          <button type="submit" class="btn btn-primary">Add Product</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- JavaScript for handling CRUD operations -->
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+<script>
+  var $j = jQuery.noConflict();
+
+  $j(function() {
+    // Add product button click handler
+    $j('#addProductBtn').click(function() {
+      $j('#addProductModal').modal('show');
+    });
+
+    // Add product form submission
+    $j('#addProductForm').submit(function(e) {
+      e.preventDefault();
+      var productName = $j('#addProductName').val();
+      var productDescription = $j('#addProductDescription').val();
+      var productManufacturer = $j('#addProductManufacturer').val();
+      var productInventory = $j('#addProductInventory').val();
+
+      // Make AJAX request to add product
+      $j.ajax({
+        type: 'POST',
+        url: '/myapp/products/',
+        data: {
+          name: productName,
+          description: productDescription,
+          manufacturer_name: productManufacturer,
+          inventory_count: productInventory
+        },
+        success: function(response) {
+          // Add new product row to the table
+          let productId = response.product_id
+          var newRow = '<tr>' +
+            '<td>' + productName + '</td>' +
+            '<td>' + productDescription + '</td>' +
+            '<td>' + productManufacturer + '</td>' +
+            '<td>' + productInventory + '</td>' +
+            '<td>' +
+            '<button class="btn btn-sm btn-primary editBtn" data-id="' + response.product_id + '">Edit</button> ' +
+            '<button class="btn btn-sm btn-danger deleteBtn" data-id="' + response.product_id + '">Delete</button>' +
+            '</td>' +
+            '</tr>';
+          $j('#productTable tbody').append(newRow);
+          $j('#addProductModal').modal('hide');
+        },
+        error: function(xhr, status, error) {
+          console.error(xhr.responseText);
+        }
+      });
+    });
+
+    // Edit product button click handler
+    $j('.editBtn').click(function(product) {
+      var productId = $j(this).data('id');
+      var productRow = $j(this).closest('tr');
+      var productName = productRow.find('td:eq(0)').text();
+      var productDescription = productRow.find('td:eq(1)').text();
+      var productManufacturer = productRow.find('td:eq(2)').text();
+      var productInventory = productRow.find('td:eq(3)').text();
+
+      $j('#editProductModal #editFormProductId').val(productId);
+      $j('#editProductModal #editProductName').val(productName);
+      $j('#editProductModal #editProductDescription').val(productDescription);
+      $j('#editProductModal #editProductManufacturer').val(productManufacturer);
+      $j('#editProductModal #editProductInventory').val(productInventory);
+      $j('#editProductModal').modal('show');
+    });
+
+    // Update product form submission
+    $j('#editProductForm').submit(function(e) {
+      e.preventDefault();
+      var productId = $j('#editFormProductId').val();
+      var productName = $j('#editProductName').val();
+      var productDescription = $j('#editProductDescription').val();
+      var productManufacturer = $j('#editProductManufacturer').val();
+      var productInventory = $j('#editProductInventory').val();
+
+      // Make AJAX request to update product
+      $j.ajax({
+        type: 'PUT',
+        url: '/myapp/products/' + productId,
+        data: {
+          name: productName,
+          description: productDescription,
+          manufacturer_name: productManufacturer,
+          inventory_count: productInventory
+        },
+        success: function(response) {
+          // Update product details in the table
+          location.reload();
+        },
+        error: function(xhr, status, error) {
+          console.error(xhr.responseText);
+        }
+      });
+    });
+
+    // Delete product button click handler
+    $j('.deleteBtn').click(function() {
+      var productId = $j(this).data('id');
+      
+      // Make AJAX request to delete product
+      $j.ajax({
+        type: 'DELETE',
+        url: '/myapp/products/' + productId,
+        success: function(response) {
+          // Remove product row from table
+          var productRow = $j('#productTable').find('tr[data-id="' + productId + '"]');
+          productRow.remove();
+        },
+        error: function(xhr, status, error) {
+          console.error(xhr.responseText);
+        }
+      });
+    });
+  });
+</script>
+{% endblock %}

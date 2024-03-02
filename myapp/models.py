@@ -55,18 +55,18 @@ class ProductsBoughtManager(models.Manager):
                                       product_name=product_name, quantity=quantity, date_of_purchase=date_of_purchase)
         return products_bought
 
-    def get_products_bought(self, products_bought_id):
-        return self.get(pk=products_bought_id)
+    def get_products_bought(self, id):
+        return self.get(pk=id)
 
-    def update_products_bought(self, products_bought_id, **kwargs):
-        products_bought = self.get(pk=products_bought_id)
+    def update_products_bought(self, id, **kwargs):
+        products_bought = self.get(pk=id)
         for field, value in kwargs.items():
             setattr(products_bought, field, value)
         products_bought.save()
         return products_bought
 
-    def delete_products_bought(self, products_bought_id):
-        products_bought = self.get(pk=products_bought_id)
+    def delete_products_bought(self, id):
+        products_bought = self.get(pk=id)
         products_bought.delete()
 
 
@@ -80,6 +80,7 @@ class User(models.Model):
 
 
 class ProductsBought(models.Model):
+    id = models.AutoField(primary_key=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     user_name = models.CharField(max_length=100)

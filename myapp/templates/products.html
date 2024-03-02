@@ -113,7 +113,11 @@
 <script>
   var $j = jQuery.noConflict();
 
-  $j(function() {
+  $j(document).ready(function() {
+
+    document.getElementById("productsLink").parentNode.classList.add("active");
+
+
     // Add product button click handler
     $j('#addProductBtn').click(function() {
       $j('#addProductModal').modal('show');
@@ -152,6 +156,9 @@
             '</tr>';
           $j('#productTable tbody').append(newRow);
           $j('#addProductModal').modal('hide');
+          $j( '#addProductForm' ).each(function(){
+                this.reset();
+          });
         },
         error: function(xhr, status, error) {
           console.error(xhr.responseText);
@@ -160,7 +167,7 @@
     });
 
     // Edit product button click handler
-    $j('.editBtn').click(function(product) {
+    $j('#productTable').on('click', '.editBtn', function(product) {
       var productId = $j(this).data('id');
       var productRow = $j(this).closest('tr');
       var productName = productRow.find('td:eq(0)').text();
@@ -206,7 +213,7 @@
     });
 
     // Delete product button click handler
-    $j('.deleteBtn').click(function() {
+    $j('#productTable').on('click', '.deleteBtn', function(product) {
       var productId = $j(this).data('id');
       
       // Make AJAX request to delete product
@@ -215,8 +222,7 @@
         url: '/myapp/products/' + productId,
         success: function(response) {
           // Remove product row from table
-          var productRow = $j('#productTable').find('tr[data-id="' + productId + '"]');
-          productRow.remove();
+          location.reload();
         },
         error: function(xhr, status, error) {
           console.error(xhr.responseText);

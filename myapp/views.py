@@ -3,6 +3,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from .models import Product, User, ProductsBought
 from django.http import QueryDict
+from django.db import transaction
 
 # Create your views here.
 
@@ -10,22 +11,13 @@ def home(request):
     return render(request, "home.html")
 
 @csrf_exempt
-def product_api(request):
+def product_api(request, pk=None):
     if request.method == 'GET':
         products = Product.objects.all()
         return render(request, 'products.html', {'products': products})
     elif request.method == 'POST':
         return create_product(request)
     elif request.method == 'PUT':
-        return update_product(request)
-    elif request.method == 'DELETE':
-        return delete_product(request)
-    else:
-        return JsonResponse({'message': 'Method not allowed'}, status=405)
-
-@csrf_exempt
-def edit_product_api(request, pk):
-    if request.method == 'PUT':
         return update_product(request, pk)
     elif request.method == 'DELETE':
         return delete_product(request, pk)
@@ -59,8 +51,6 @@ def update_product(request, pk):
     try:
         data = QueryDict(request.body)
         product_id = pk
-        print(f"product id is {product_id}")
-        print(f"{data}")
         if not product_id:
             return JsonResponse({'message': 'Product ID is required for update'}, status=400)
         update_data = {key: data[key] for key in data.keys()}
@@ -85,15 +75,16 @@ def delete_product(request, pk):
 
 
 @csrf_exempt
-def user_api(request):
+def user_api(request, pk=None):
     if request.method == 'GET':
-        return get_user(request)
+        users = User.objects.all()
+        return render(request, 'users.html', {'users': users})
     elif request.method == 'POST':
         return create_user(request)
     elif request.method == 'PUT':
-        return update_user(request)
+        return update_user(request, pk)
     elif request.method == 'DELETE':
-        return delete_user(request)
+        return delete_user(request, pk)
     else:
         return JsonResponse({'message': 'Method not allowed'}, status=405)
 
@@ -119,22 +110,23 @@ def create_user(request):
     except Exception as e:
         return JsonResponse({'message': f'Error creating user: {str(e)}'}, status=500)
 
-def update_user(request):
+def update_user(request, pk):
     try:
-        data = request.POST
-        user_id = data.get('user_id')
+        data = QueryDict(request.body)
+        user_id = pk
         if not user_id:
             return JsonResponse({'message': 'User ID is required for update'}, status=400)
-        user = User.objects.update_user(user_id=user_id, **data)
+        update_data = {key: data[key] for key in data.keys()}
+        user = User.objects.update_user(user_id=user_id, **update_data)
         return JsonResponse({'message': 'User updated successfully'})
     except User.DoesNotExist:
         return JsonResponse({'message': 'User not found'}, status=404)
     except Exception as e:
         return JsonResponse({'message': f'Error updating user: {str(e)}'}, status=500)
 
-def delete_user(request):
+def delete_user(request, pk):
     try:
-        user_id = request.POST.get('user_id')
+        user_id = pk
         if not user_id:
             return JsonResponse({'message': 'User ID is required for deletion'}, status=400)
         User.objects.delete_user(user_id=user_id)
@@ -145,15 +137,18 @@ def delete_user(request):
         return JsonResponse({'message': f'Error deleting user: {str(e)}'}, status=500)
 
 @csrf_exempt
-def products_bought_api(request):
+def products_bought_api(request, pk=None):
     if request.method == 'GET':
-        return get_products_bought(request)
+        orders = ProductsBought.objects.all()
+        users = User.objects.all()
+        products = Product.objects.all()
+        return render(request, 'orders.html', {'orders': orders, 'users': users, 'products': products})
     elif request.method == 'POST':
         return create_products_bought(request)
     elif request.method == 'PUT':
         return update_products_bought(request)
     elif request.method == 'DELETE':
-        return delete_products_bought(request)
+        return delete_products_bought(request, pk)
     else:
         return JsonResponse({'message': 'Method not allowed'}, status=405)
 
@@ -176,10 +171,18 @@ def get_products_bought(request):
 def create_products_bought(request):
     try:
         data = request.POST
-        products_bought = ProductsBought.objects.create_products_bought(user_id=data['user_id'], product_id=data['product_id'],
-                                                                         user_name=data['user_name'], product_name=data['product_name'],
-                                                                         quantity=data['quantity'], date_of_purchase=data['date_of_purchase'])
-        return JsonResponse({'products_bought_id': products_bought.id, 'message': 'Products bought created successfully'})
+        if data['user'] and data['product']:
+            user_obj = User.objects.get_user(data['user'])
+            product_obj = Product.objects.get_product(data['product'])
+            if not int(data['quantity']) < product_obj.inventory_count:
+                return JsonResponse({'message': f'Quantity should not exceed {product_obj.inventory_count}'}, status=500)
+            products_bought = ProductsBought.objects.create_products_bought(user=user_obj, product=product_obj,
+                                                                            user_name=user_obj.user_name, product_name=product_obj.name,
+                                                                            quantity=int(data['quantity']), date_of_purchase=data['date_of_purchase'])
+            Product.objects.update_product(product_id = product_obj.product_id,inventory_count = product_obj.inventory_count - int(data['quantity']))
+            return JsonResponse({'products_bought_id': products_bought.id, 'message': 'Products bought created successfully'})
+        else:
+            return JsonResponse({'message': 'Both User and Product are required'}, status=400)
     except Exception as e:
         return JsonResponse({'message': f'Error creating products bought: {str(e)}'}, status=500)
 
@@ -196,13 +199,22 @@ def update_products_bought(request):
     except Exception as e:
         return JsonResponse({'message': f'Error updating products bought: {str(e)}'}, status=500)
 
-def delete_products_bought(request):
+@transaction.atomic
+def delete_products_bought_logic(pk):
+    products_bought = ProductsBought.objects.get_products_bought(id = pk)
+    Product.objects.update_product(product_id = products_bought.product.product_id,inventory_count = products_bought.product.inventory_count + products_bought.quantity)
+    print("product quantity updated successfully")
+    ProductsBought.objects.delete_products_bought(id=pk+1)
+
+
+def delete_products_bought(request, pk):
     try:
-        products_bought_id = request.POST.get('products_bought_id')
-        if not products_bought_id:
-            return JsonResponse({'message': 'Products bought ID is required for deletion'}, status=400)
-        ProductsBought.objects.delete_products_bought(products_bought_id=products_bought_id)
+        if not pk:
+            return JsonResponse({'message': 'Invalid row selected for deletion'}, status=400)
+
+        delete_products_bought_logic(pk)
         return JsonResponse({'message': 'Products bought deleted successfully'})
+
     except ProductsBought.DoesNotExist:
         return JsonResponse({'message': 'Products bought not found'}, status=404)
     except Exception as e:

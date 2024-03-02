@@ -22,9 +22,9 @@
     </button>
 
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
-      <ul class="navbar-nav mr-auto">
-        <li class="nav-item active">
-          <a class="nav-link" href="#">Home</a>
+      <ul class="navbar-nav mr-auto" id="navigationbar">
+        <li class="nav-item">
+          <a class="nav-link" href="#" id="homeLink">Home</a>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="#" id="productsLink">Products</a>
@@ -53,6 +53,9 @@
 <script>
   // API requests to navigate to product, users, and orders pages
   $(document).ready(function() {
+
+    document.getElementById("homeLink").parentNode.classList.add("active");
+
     $('#productsLink').click(function(e) {
       e.preventDefault();
       // Make API request to navigate to products page
@@ -87,7 +90,7 @@
       e.preventDefault();
       // Make API request to navigate to orders page
       $.ajax({
-        url: '/v/orders',
+        url: '/myapp/orders',
         method: 'GET',
         success: function(response) {
           window.location.href = '/orders';

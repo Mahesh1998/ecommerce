@@ -115,7 +115,7 @@
 
   $j(document).ready(function() {
 
-    document.getElementById("productsLink").parentNode.classList.add("active");
+    
 
 
     // Add product button click handler
@@ -161,7 +161,9 @@
           });
         },
         error: function(xhr, status, error) {
+          debugger;
           console.error(xhr.responseText);
+          showErrorMessage("Failed to create product");
         }
       });
     });
@@ -208,6 +210,7 @@
         },
         error: function(xhr, status, error) {
           console.error(xhr.responseText);
+          showErrorMessage("Failed to update product");
         }
       });
     });
@@ -226,6 +229,7 @@
         },
         error: function(xhr, status, error) {
           console.error(xhr.responseText);
+          showErrorMessage("Failed to delete product");
         }
       });
     });

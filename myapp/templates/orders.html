@@ -93,8 +93,7 @@
 <script>
   var $j = jQuery.noConflict();
 
-  $j(function() {
-
+  $j(document).ready(function() {
     // Add Product Bought Form Submission
     $j('#addProductBoughtForm').submit(function(e) {
       e.preventDefault();
@@ -122,6 +121,7 @@
         },
         error: function(xhr, status, error) {
           console.error(xhr.responseText);
+          showErrorMessage("Failed to create product bought");
         }
       });
     });
@@ -140,6 +140,7 @@
           },
           error: function(xhr, status, error) {
             console.error(xhr.responseText);
+            showErrorMessage("Failed to delete product bought");
           }
         });
       }

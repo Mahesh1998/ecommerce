@@ -6,12 +6,12 @@
   <title>{% block title %}My Ecommerce Site{% endblock %}</title>
   <!-- Bootstrap CSS -->
   <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Custom CSS -->
-  <style>
-    /* Add your custom styles here */
-  </style>
 </head>
 <body>
+
+<div id="errorPopup" class="error-popup alert alert-danger fade" role="alert">
+  <span class="error-message" id="errorMessage"></span>
+</div>
 
 <!-- Navbar -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -51,56 +51,86 @@
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script>
-  // API requests to navigate to product, users, and orders pages
   $(document).ready(function() {
+  // Function to show error message
+  function showErrorMessage(message) {
+    $("#errorMessage").text(message);
+    $("#errorPopup").addClass("show");
+    setTimeout(function() {
+      $("#errorPopup").removeClass("show");
+    }, 3000); // 3000 milliseconds = 3 seconds
+  }
 
-    document.getElementById("homeLink").parentNode.classList.add("active");
+  var currentUrl = window.location.href;
+  if (currentUrl.includes("/myapp/products")) {
+    $("#productsLink").addClass("active");
+  } else if (currentUrl.includes("/myapp/users")) {
+    $("#usersLink").addClass("active");
+  } else if (currentUrl.includes("/myapp/orders")) {
+    $("#ordersLink").addClass("active");
+  } else {
+    $("#homeLink").addClass("active");
+  }
 
-    $('#productsLink').click(function(e) {
-      e.preventDefault();
-      // Make API request to navigate to products page
-      $.ajax({
-        url: '/myapp/products',
-        method: 'GET',
-        success: function(response) {
-          window.location.href = '/myapp/products';
-        },
-        error: function(xhr, status, error) {
-          console.error(xhr.responseText);
-        }
-      });
-    });
+  // Click event for Home link
+  $('#homeLink').click(function(e) {
+    e.preventDefault();
+    window.location.href = 'http://127.0.0.1:8000/';
+  });
 
-    $('#usersLink').click(function(e) {
-      e.preventDefault();
-      // Make API request to navigate to users page
-      $.ajax({
-        url: '/myapp/users/',
-        method: 'GET',
-        success: function(response) {
-          window.location.href = '/users';
-        },
-        error: function(xhr, status, error) {
-          console.error(xhr.responseText);
-        }
-      });
-    });
-
-    $('#ordersLink').click(function(e) {
-      e.preventDefault();
-      // Make API request to navigate to orders page
-      $.ajax({
-        url: '/myapp/orders',
-        method: 'GET',
-        success: function(response) {
-          window.location.href = '/orders';
-        },
-        error: function(xhr, status, error) {
-          console.error(xhr.responseText);
-        }
-      });
+  // Click event for Products link
+  $('#productsLink').click(function(e) {
+    e.preventDefault();
+    // Make API request to navigate to products page
+    $.ajax({
+      url: '/myapp/products',
+      method: 'GET',
+      success: function(response) {
+        window.location.href = '/myapp/products';
+      },
+      error: function(xhr, status, error) {
+        console.error(xhr.responseText);
+        showErrorMessage("Failed to load products page");
+      }
     });
   });
+
+  // Click event for Users link
+  $('#usersLink').click(function(e) {
+    e.preventDefault();
+    // Make API request to navigate to users page
+    $.ajax({
+      url: '/myapp/users/',
+      method: 'GET',
+      success: function(response) {
+        window.location.href = '/myapp/users';
+      },
+      error: function(xhr, status, error) {
+        console.error(xhr.responseText);
+        showErrorMessage("Failed to load users page");
+      }
+    });
+  });
+
+  // Click event for Orders link
+  $('#ordersLink').click(function(e) {
+    e.preventDefault();
+    // Make API request to navigate to orders page
+    $.ajax({
+      url: '/myapp/orders',
+      method: 'GET',
+      success: function(response) {
+        window.location.href = '/myapp/orders';
+      },
+      error: function(xhr, status, error) {
+        console.error(xhr.responseText);
+        showErrorMessage("Failed to load orders page");
+      }
+    });
+  });
+});
+
+
 </script>
 </body>
 </html>

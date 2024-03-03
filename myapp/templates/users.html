@@ -107,7 +107,7 @@
 
   $j(document).ready(function() {
 
-    document.getElementById("usersLink").parentNode.classList.add("active");
+    
 
     // Add user button click handler
     $j('#addUserBtn').click(function() {
@@ -148,6 +148,7 @@
         },
         error: function(xhr, status, error) {
           console.error(xhr.responseText);
+          showErrorMessage("Failed to create user");
         }
       });
     });
@@ -190,6 +191,7 @@
         },
         error: function(xhr, status, error) {
           console.error(xhr.responseText);
+          showErrorMessage("Failed to update user");
         }
       });
     });
@@ -208,6 +210,7 @@
         },
         error: function(xhr, status, error) {
           console.error(xhr.responseText);
+          showErrorMessage("Failed to delete user");
         }
       });
     });

@@ -203,8 +203,7 @@ def update_products_bought(request):
 def delete_products_bought_logic(pk):
     products_bought = ProductsBought.objects.get_products_bought(id = pk)
     Product.objects.update_product(product_id = products_bought.product.product_id,inventory_count = products_bought.product.inventory_count + products_bought.quantity)
-    print("product quantity updated successfully")
-    ProductsBought.objects.delete_products_bought(id=pk+1)
+    ProductsBought.objects.delete_products_bought(id=pk)
 
 
 def delete_products_bought(request, pk):
